@@ -9,6 +9,7 @@ on:
   schedule:
     - cron: '0 3 * * 1'
 
+  push:
 env:
   # Workaround testsuite locale issue
   LANG: en_US.UTF-8
@@ -42,7 +43,7 @@ jobs:
 
   populate-cache:
     name: "Populate cache"
-    needs: [ configure ]
+    needs: [configure]
     runs-on: ubuntu-latest
     steps:
       - name: Set up JDK 17
