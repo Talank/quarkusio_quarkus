@@ -6,40 +6,16 @@ permissions:
 
 on:
   workflow_dispatch:
-    inputs:
-      BRANCH:
-        description: 'Branch to use'
-        required: true
-        default: 'main'
-        type: string
-      NATIVE_COMPILER:
-        description: 'the native compiler to use'
-        required: true
-        default: 'mandrel'
-        type: choice
-        options:
-          - mandrel
-          - graalvm-community
-          - graalvm
-          - liberica
-      NATIVE_COMPILER_VERSION:
-        description: 'the native compiler version to use'
-        required: true
-        default: '25'
-        type: choice
-        options:
-          - '17'
-          - '21'
-          - '25'
-
 env:
   # Workaround testsuite locale issue
   LANG: en_US.UTF-8
   COMMON_MAVEN_ARGS: "-e -B --settings .github/mvn-settings.xml --fail-at-end"
   COMMON_TEST_MAVEN_ARGS: "-Dformat.skip -Denforcer.skip -DskipDocs -Dforbiddenapis.skip -DskipExtensionValidation -DskipCodestartValidation"
-  NATIVE_TEST_MAVEN_ARGS: "-Dtest-containers -Dstart-containers -Dquarkus.native.native-image-xmx=6g -Dnative -Dnative.surefire.skip -Dno-descriptor-tests clean install -DskipDocs"
+  NATIVE_TEST_MAVEN_ARGS: "-Dtest-containers -Dstart-containers -Dquarkus.native.native-image-xmx=6g -Dnative -Dnative.surefire.skip
+    -Dno-descriptor-tests clean install -DskipDocs"
   JVM_TEST_MAVEN_ARGS: "-Dtest-containers -Dstart-containers -Dquarkus.test.hang-detection-timeout=60"
-  PTS_MAVEN_ARGS: "-Ddevelocity.pts.enabled=${{ github.event_name == 'pull_request' && github.base_ref == 'main' && 'true' || 'false' }}"
+  PTS_MAVEN_ARGS: "-Ddevelocity.pts.enabled=${{ github.event_name == 'pull_request' && github.base_ref == 'main' && 'true'
+    || 'false' }}"
   DB_USER: hibernate_orm_test
   DB_PASSWORD: hibernate_orm_test
   DB_NAME: hibernate_orm_test
@@ -189,6 +165,8 @@ jobs:
             build-reports.zip
           retention-days: 7
 
+    strategy:
+      fail-fast: false
   calculate-test-jobs:
     name: Calculate Test Jobs
     runs-on: ubuntu-latest
@@ -222,7 +200,8 @@ jobs:
           echo "matrix=${json}" >> $GITHUB_OUTPUT
 
   virtual-thread-native-tests:
-    name: Native Tests - Virtual Thread - ${{matrix.category}} - ${{inputs.NATIVE_COMPILER}} ${{inputs.NATIVE_COMPILER_VERSION}} - ${{inputs.BRANCH}}
+    name: Native Tests - Virtual Thread - ${{matrix.category}} - ${{inputs.NATIVE_COMPILER}} 
+      ${{inputs.NATIVE_COMPILER_VERSION}} - ${{inputs.BRANCH}}
     runs-on: ${{matrix.os-name}}
     needs: [build-jdk17, calculate-test-jobs]
     timeout-minutes: ${{matrix.timeout}}
@@ -303,7 +282,8 @@ jobs:
           retention-days: 7
 
   native-tests:
-    name: Native Tests - ${{matrix.category}} - ${{inputs.NATIVE_COMPILER}} ${{inputs.NATIVE_COMPILER_VERSION}} - ${{inputs.BRANCH}}
+    name: Native Tests - ${{matrix.category}} - ${{inputs.NATIVE_COMPILER}} ${{inputs.NATIVE_COMPILER_VERSION}} - 
+      ${{inputs.BRANCH}}
     needs: [build-jdk17, calculate-test-jobs]
     runs-on: ${{matrix.os-name}}
     env:
@@ -377,13 +357,15 @@ jobs:
         env:
           TEST_MODULES: ${{matrix.test-modules}}
           CAPTURE_BUILD_SCAN: true
-        run: ./mvnw $COMMON_MAVEN_ARGS $COMMON_TEST_MAVEN_ARGS $PTS_MAVEN_ARGS -f integration-tests -pl "$TEST_MODULES" $NATIVE_TEST_MAVEN_ARGS
+        run: ./mvnw $COMMON_MAVEN_ARGS $COMMON_TEST_MAVEN_ARGS $PTS_MAVEN_ARGS -f integration-tests -pl "$TEST_MODULES" 
+          $NATIVE_TEST_MAVEN_ARGS
       - name: Prepare failure archive (if maven failed)
-        if: failure()
-        run: find . -type d -name '*-reports' -o -wholename '*/build/reports/tests/functionalTest' -o -name '*.log' | tar -czf test-reports.tgz -T -
+        if: always()
+        run: find . -type d -name '*-reports' -o -wholename '*/build/reports/tests/functionalTest' -o -name '*.log' | 
+          tar -czf test-reports.tgz -T -
       - name: Upload failure Archive (if maven failed)
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        if: failure()
+        if: always()
         with:
           name: test-reports-native-${{matrix.category}}
           path: 'test-reports.tgz'
@@ -409,7 +391,7 @@ jobs:
   build-report:
     runs-on: ubuntu-latest
     name: Build report - ${{inputs.NATIVE_COMPILER}} ${{inputs.NATIVE_COMPILER_VERSION}} - ${{inputs.BRANCH}}
-    needs: [build-jdk17,native-tests,virtual-thread-native-tests]
+    needs: [build-jdk17, native-tests, virtual-thread-native-tests]
     if: always()
     steps:
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8

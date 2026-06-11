@@ -6,9 +6,6 @@ permissions:
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 3 * * 1'
-
 env:
   # Workaround testsuite locale issue
   LANG: en_US.UTF-8
@@ -42,7 +39,7 @@ jobs:
 
   populate-cache:
     name: "Populate cache"
-    needs: [ configure ]
+    needs: [configure]
     runs-on: ubuntu-latest
     steps:
       - name: Set up JDK 17
@@ -67,3 +64,5 @@ jobs:
       - name: Populate the cache
         run: |
           ./mvnw -T2C $COMMON_MAVEN_ARGS -q dependency:go-offline -Dgo-offline
+    strategy:
+      fail-fast: false

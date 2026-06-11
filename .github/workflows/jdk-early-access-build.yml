@@ -6,27 +6,13 @@ permissions:
   packages: read
 
 on:
-  schedule:
-    # midnight every weekday + saturday
-    - cron:  '0 0 * * 1-6'
   workflow_dispatch:
-    inputs:
-      jdkVersion:
-        description: 'JDK version'
-        required: true
-        # make sure to keep the matrix entries (see below) in sync!
-        default: '21'
-      jdkDistribution:
-        description: 'JDK distribution'
-        required: true
-        # make sure to keep the matrix entries (see below) in sync!
-        default: 'jdk.java.net'
-
 env:
   # Workaround testsuite locale issue
   LANG: en_US.UTF-8
   MAVEN_OPTS: -Xmx2g -XX:MaxMetaspaceSize=1g
-  JVM_TEST_MAVEN_OPTS: "-e -B --settings .github/mvn-settings.xml -Dtest-containers -Dstart-containers -Dtest-resteasy-reactive-large-files -Dquarkus.test.rest-assured.enable-logging-on-failure=false -Dformat.skip"
+  JVM_TEST_MAVEN_OPTS: "-e -B --settings .github/mvn-settings.xml -Dtest-containers -Dstart-containers -Dtest-resteasy-reactive-large-files
+    -Dquarkus.test.rest-assured.enable-logging-on-failure=false -Dformat.skip"
   DB_USER: hibernate_orm_test
   DB_PASSWORD: hibernate_orm_test
   DB_NAME: hibernate_orm_test
