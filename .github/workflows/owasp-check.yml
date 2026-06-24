@@ -21,6 +21,10 @@ jobs:
           - windows-latest
           - macos-latest
     steps:
+      - name: Enable long paths (Windows)
+        if: runner.os == 'Windows'
+        run: git config --global core.longpaths true
+
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -34,6 +38,7 @@ jobs:
 
       - name: Generate cache key
         id: cache-key
+        shell: bash
         run: |
           CURRENT_BRANCH="${{ github.repository != 'quarkusio/quarkus' && 'fork' || github.base_ref || github.ref_name }}"
           CURRENT_MONTH=$(/bin/date -u "+%Y-%m")
@@ -52,13 +57,15 @@ jobs:
             ${{ steps.cache-key.outputs.m2-monthly-cache-key }}-
 
       - name: Build Java
+        shell: bash
         run: ./mvnw -B --settings .github/mvn-settings.xml -Dquickly-ci install
 
       - name: Perform OWASP Dependency Check Report
-        run: ./mvnw -Dowasp-report
+        run: ./mvnw -Dowasp-report -Dnvd.delay=4000
+        shell: bash
 
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: dependency-check-report
+          name: dependency-check-report-${{ matrix.os }}
           path: target/dependency-check-report.html
           retention-days: 5
