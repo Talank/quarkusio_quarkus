@@ -10,7 +10,6 @@ jobs:
   owasp:
     name: OWASP Dependency Check Report
     runs-on: ${{ matrix.os }}
-    if: always()
 
     strategy:
       fail-fast: false
@@ -18,8 +17,6 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
-          - windows-latest
-          - macos-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -42,6 +39,7 @@ jobs:
           echo "m2-monthly-cache-key=${ROOT_CACHE_KEY}-${CURRENT_MONTH}" >> $GITHUB_OUTPUT
           echo "m2-monthly-branch-cache-key=${ROOT_CACHE_KEY}-${CURRENT_MONTH}-${CURRENT_BRANCH}" >> $GITHUB_OUTPUT
           echo "m2-cache-key=${ROOT_CACHE_KEY}-${CURRENT_MONTH}-${CURRENT_BRANCH}-${CURRENT_DAY}" >> $GITHUB_OUTPUT
+        shell: bash
       - name: Restore Maven Repository
         uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
         with:
@@ -53,9 +51,11 @@ jobs:
 
       - name: Build Java
         run: ./mvnw -B --settings .github/mvn-settings.xml -Dquickly-ci install
+        shell: bash
 
       - name: Perform OWASP Dependency Check Report
         run: ./mvnw -Dowasp-report
+        shell: bash
 
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
