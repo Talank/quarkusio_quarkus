@@ -6,16 +6,15 @@ permissions:
   packages: read
 
 on:
-  schedule:
-    - cron: '0 3 * * *'
+  workflow_dispatch:
 env:
   LANG: en_US.UTF-8
   MVNW_REPOURL: https://maven-central.storage-download.googleapis.com/maven2
 jobs:
   build:
     name: "Prepare release"
-    runs-on: ubuntu-latest
-    if: github.repository == 'quarkusio/quarkus'
+    runs-on: ${{ matrix.os }}
+    if: always()
     env:
       MAVEN_OPTS: -Xmx2560m
       JBANG_REPO: $HOME/release/repository
@@ -60,3 +59,9 @@ jobs:
           issue-number: 13058
           quarkus-sha: ${{ steps.quarkus-sha.outputs.sha }}
           project-sha: ${{ steps.quarkus-sha.outputs.sha }}
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - ubuntu-24.04-arm
+      fail-fast: false
