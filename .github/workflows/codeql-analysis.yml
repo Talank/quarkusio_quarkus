@@ -19,6 +19,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Reclaim Disk Space
         run: .github/ci-prerequisites.sh
+        if: runner.os == 'Linux' && runner.arch == 'X64'
       - name: Setup Java JDK
         uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
         with:
@@ -44,6 +45,7 @@ jobs:
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@95e58e9a2cdfd71adc6e0353d5c52f41a045d225 # v4.35.2
+        if: runner.arch == 'X64'
         with:
           languages: java-kotlin
           queries: security-extended
@@ -54,6 +56,7 @@ jobs:
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@95e58e9a2cdfd71adc6e0353d5c52f41a045d225 # v4.35.2
+        if: runner.arch == 'X64'
     strategy:
       matrix:
         os:
